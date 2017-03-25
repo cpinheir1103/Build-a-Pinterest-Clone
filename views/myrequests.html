@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Book Trading Club</title>
+    <meta name="description" content="A cool thing made with Glitch">
+    <link id="favicon" rel="icon" href="https://glitch.com/edit/favicon-app.ico" type="image/x-icon">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/style.css">
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"
+            integrity="sha256-gvQgAFzTH6trSrAWoH1iPo9Xc96QxSZ3feW6kem+O00="
+            crossorigin="anonymous"></script>
+    <script>
+      var authuser = '<%= authuser %>';
+            
+      function refreshReqForMeBookData() {
+        $.ajax({
+          dataType: "json",
+          url: "/getRequestsForMe",
+          success: dataReqForMeReady
+        });
+      }
+      
+      function removeIllegalChars(str) {        
+        return str.replace(/\W/g, '');
+      }
+      
+      function removeNonNumeric(str) {
+        return str.replace(/\D/g,'');
+      }
+      
+      function newBook(picURL) {
+        // now post to node server
+        $.ajax({
+          url: '/newbook', 
+          type: 'POST', 
+          contentType: 'application/json', 
+          data: JSON.stringify({"picURL": picURL})
+          //,
+          //success: refreshPage() 
+        })
+        
+        // refresh 'going' data after a sec.
+        //setTimeout(refreshBookData, 1000);
+      }
+      
+      function approveReq(id) {
+        // now post to node server
+        $.ajax({
+          url: '/approvereq', 
+          type: 'POST', 
+          contentType: 'application/json', 
+          data: JSON.stringify({"id": id})
+          //,
+          //success: refreshPage() 
+        })
+        
+        // refresh 'going' data after a sec.
+        setTimeout(refreshReqForMeBookData, 1000);
+      }
+            
+      function dataReqForMeReady(data) {
+        // this is the event data. display this first. 
+        var str = "";
+        var len = data.length;
+        console.log("data = " + JSON.stringify(data));
+        /*
+        var imgURL = data.items[0].volumeInfo.imageLinks.smallThumbnail;
+        console.log("thmbURL = " + imgURL); 
+        
+        str += '<img src= "' + imgURL + '"></img>';
+         $(".status").html(str);
+         */
+               
+        for (var i=0; i<len; i++) {          
+          var picURL = data[i].picURL;
+          str += '<div class="book" ><img src= "' + picURL + '" height="180" width="125"></img><div></div>';  
+          if (data[i].approved === 0)
+            str += '<div><button id="' + data[i].ID + '" onclick="approveReq(' + data[i].ID + ')" >Accept Trade</button></div>';           
+          else
+            str += '<p>Approved</p></div>';
+          str += '</div>'; 
+            
+            
+        }
+        //console.log("str = " + JSON.stringify(str));       
+        $(".status").html(str);
+      }
+      
+      function dataMyBooksReady(data) {
+        // this is the event data. display this first. 
+        var str = "";
+        var len = data.length;
+        console.log("data = " + JSON.stringify(data));
+        /*
+        var imgURL = data.items[0].volumeInfo.imageLinks.smallThumbnail;
+        console.log("thmbURL = " + imgURL); 
+        
+        str += '<img src= "' + imgURL + '"></img>';
+         $(".status").html(str);
+         */
+               
+        for (var i=0; i<len; i++) {          
+          var picURL = data[i].picURL;
+          var apprvStr;
+          if (data[i].approved)
+            apprvStr = "Approved";
+          else
+            apprvStr = "Pending";
+          str += '<div class="book" ><img src= "' + picURL + '" height="180" width="125"></img><div></div>';
+          str += '<p>' + apprvStr + '</p></div>';          
+        }
+        //console.log("str = " + JSON.stringify(str));       
+        $(".mybooks").html(str);
+      }
+      
+      function dataReady(data) {
+        
+        // this is the event data. display this first. 
+        var str = "";
+        var len = data.length;
+        console.log("data = " + JSON.stringify(data));
+        var imgURL = data.items[0].volumeInfo.imageLinks.smallThumbnail;
+        console.log("thmbURL = " + imgURL); 
+        
+        newBook(imgURL);
+        
+        str += '<img src= "' + imgURL + '"></img>';
+         $(".status").html(str);
+        
+      }
+      
+      $(document).ready(function() {
+                
+        myHeader();        
+        
+        $.ajax({
+          dataType: "json",
+          url: "/getMyRequests",
+          success: dataMyBooksReady
+        });
+        
+        $.ajax({
+          dataType: "json",
+          url: "/getRequestsForMe",
+          success: dataReqForMeReady
+        });
+        
+        $("#submit").click(function() {
+          var username = $("#username").val();        
+          var password = $("#password").val();
+          console.log("username = " + username);
+          
+          var searchterm = $("#stext").val();
+          var url = "https://www.googleapis.com/books/v1/volumes?q=title:" + searchterm;
+          
+          //$.getJSON(url dataReady);
+          
+          $.ajax({
+            dataType: "jsonp",
+            url: url,
+            success: dataReady
+          });
+          
+          
+        });
+      });
+      
+    </script>
+  </head>
+  <body>
+    <header class="myhdr">
+    </header>
+    <h1 class="fclear">
+      Requests For My Books:
+    </h1>
+    <div class="status">  
+    </div>
+    <h1 class="fclear">
+      My Requests:
+    </h1>
+    <div class="mybooks">      
+    </div>
+    <script src="/client.js"></script>    
+  </body>
+</html>

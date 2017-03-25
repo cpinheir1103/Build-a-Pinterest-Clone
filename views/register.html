@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Pinterest Clone</title>
+    <meta name="description" content="A cool thing made with Glitch">
+    <link id="favicon" rel="icon" href="https://glitch.com/edit/favicon-app.ico" type="image/x-icon">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/style.css">
+    <script src="https://code.jquery.com/jquery-2.2.1.min.js"
+            integrity="sha256-gvQgAFzTH6trSrAWoH1iPo9Xc96QxSZ3feW6kem+O00="
+            crossorigin="anonymous"></script>
+    <script>
+      var authuser = '<%= authuser %>';
+      
+      function registerError() {        
+        console.log("register error!!!");
+        $(".status").html("<p style='color:red'>Register Unsuccessful</p>");
+      }
+      
+      function registerSuccess() {        
+        console.log("register success!!!");
+        $(".status").html("<p style='color:blue'>Register Successful</p>");
+        window.location.replace("/login");
+      }
+      
+      $(document).ready(function() {
+        myHeader();         
+        
+        $("#submit").click(function() {
+          var username = $("#username").val();       
+          var password = $("#password").val();
+          var name = $("#name").val();
+          var email = $("#email").val();
+          var city = $("#city").val();
+          var state = $("#state").val();
+          console.log("username = " + username);
+          
+          // now post to node server
+          $.ajax({
+              url: '/procregister', 
+              type: 'POST', 
+              contentType: 'application/json', 
+              data: JSON.stringify({"username":username, "password":password, "city":city, "name":name, "email":email, "state":state }),
+              success:  function () { setTimeout(function () { registerSuccess(); }, 1000) },
+              error: function (json) { 
+                console.log("json.status=" + json.status);
+                setTimeout(function () { resgisterError(); }, 1000) 
+              }    
+          });
+          
+        });
+      });
+      
+    </script>
+  </head>
+  <body>
+    <header class="myhdr">
+    </header>
+    <div id="mainform">   
+      <!-- Required Div Starts Here -->
+      <form id="form">
+        <h3>Register</h3>
+        <p id="returnmessage"></p>
+        <label>Username: <span>*</span></label>
+        <input type="text" id="username" placeholder="Username"/><br/>
+        <label>Password:</label>
+        <input type="password" id="password" placeholder="Password"/><br/> 
+        <label>Name: <span>*</span></label>
+        <input type="text" id="name" placeholder="Name"/><br/>
+        <label>E-Mail:</label>
+        <input type="text" id="email" placeholder="E-mail"/><br/>
+        <label>City:</label>
+        <input type="text" id="city" placeholder="City"/><br/>
+        <label>State:</label>
+        <input type="text" id="state" placeholder="State"/><br/>         
+        <input type="button" id="submit" value="Register"/>
+      </form>
+    </div>
+    <div class="status">      
+    </div>
+    <script src="/client.js"></script>    
+  </body>
+</html>
